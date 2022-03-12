@@ -2,49 +2,58 @@ import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 import MovieList from "./Components/MovieList"
+import MovieListHeading from "./Components/MovieListHeading";
+import SearchBox from "./Components/SearchBox";
+import AddFavourite from "./Components/AddFavourites";
 
 function App() {
-  const [movies, setMovies] = useState([
-    {
-      Title: "Star Wars: Episode VI - Return of the Jedi",
-      Year: "1983",
-      imdbID: "tt0086190",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BOWZlMjFiYzgtMTUzNC00Y2IzLTk1NTMtZmNhMTczNTk0ODk1XkEyXkFqcGdeQXVyNTAyODkwOQ@@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode VIII - The Last Jedi",
-      Year: "2017",
-      imdbID: "tt2527336",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BMjQ1MzcxNjg4N15BMl5BanBnXkFtZTgwNzgwMjY4MzI@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars Jedi: Fallen Order",
-      Year: "2019",
-      imdbID: "tt5691474",
-      Type: "game",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BMjhhNzNmNGItZGVjYi00N2E5LTliNTktYTMyMGFkZjYzNGEwXkEyXkFqcGdeQXVyMTQ4MjM0MjA@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Jedi Knight II - Jedi Outcast",
-      Year: "2002",
-      imdbID: "tt0297410",
-      Type: "game",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BYmNjNzNkZDYtZGExMy00MzhiLWFhNjMtY2ZkMzM2YTAzNzI1XkEyXkFqcGdeQXVyMTA1OTEwNjE@._V1_SX300.jpg",
-    },
-  ]);
+  const [movies, setMovies] = useState([]);
+  const [searchValue, setSearchValue] = useState('');
+  const [favourites, setFavourites] = useState([]);
+
+  const getMovieRequest = async (searchValue) => {
+    const url = `http://www.omdbapi.com/?s=${searchValue}&apikey=f7fbd6a9`;
+
+    const response = await fetch(url);
+    const responseJson = await response.json();
+
+    // si responseJson est un object
+    if(responseJson.Search){ 
+      // on stock l'objet responseJson.search dans le state via la méthode setMovies
+      setMovies(responseJson.Search);
+    }
+  };
+
+  useEffect(() => {
+    getMovieRequest(searchValue);
+  }, [searchValue]);
+
+  const addFavouritesMovie = (movie) => {
+    const newFavouriteList = [...favourites, movie];
+    setFavourites (newFavouriteList);
+  }
 
   return (
     <div className="container-fluid movie-app">
+      <div className="row d-flex align-items-center mt-4 mb-4">
+        <MovieListHeading heading="Movies"/>
+        <SearchBox searchValue={searchValue} setSearchValue={setSearchValue}  />
+      </div>
       <div className="row">
         <MovieList
          movies={movies} 
+         handleFavouritesClick={addFavouritesMovie}
+         favouriteComponent={AddFavourite}
          />
+      </div>
+      <div className="row d-flex align-items-center mt-4 mb-4">
+        <MovieListHeading heading="Favourites" />
+      </div>
+      <div className="row">
+        <MovieList 
+          movies={favourites}
+          handleFavouritesClick
+        />
       </div>
     </div>
   );
